@@ -56,8 +56,14 @@ Deno.serve(async (req: Request) => {
     const t = setTimeout(() => ac.abort(), 60000);
     const upstream = await fetch(target, {
       headers: {
+        // FB-bot UA — Meta whitelists their own OG crawler at fbcdn's edge.
+        // yt-dlp uses this trick (extractor/facebook.py) to bypass per-IP
+        // throttling. Never default to a browser UA — that triggers throttle.
         'User-Agent': UA_FACEBOOK_BOT,
+        // Referer fb.com — pairs with FB-bot UA for max edge-server trust.
+        Referer: 'https://www.facebook.com/',
         Accept: '*/*',
+        // Pass through client Range for resume / partial fetch support.
         Range: clientRange,
       },
       signal: ac.signal,
